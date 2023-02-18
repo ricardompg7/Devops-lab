@@ -1,0 +1,17 @@
+- name: Upgrade de todos os pacotes do centos/os
+  yum: 
+    name: '*'
+    state: latest
+- name: Instalacao do git client 
+  yum:            
+    name: git          
+    state: latest 
+- name: Configurar hosts lab ansible   #Tarefas repetitivas sempre deve estar aqui em Role para ser usado como variavel
+     lineinfile:
+       dest: /etc/hosts
+       state: present
+       line: "{{item}}"
+     with_items:
+      - 192.168.1.2 control-node
+      - 192.168.1.3 app01
+      - 192.168.1.4 db01s

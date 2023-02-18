@@ -1,0 +1,11 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+  
+  config.vm.box = "centos/7"
+  config.vm.hostname = "control-node" #Atribuir nome ao servidor
+  config.vm.network "private_network", ip: "192.168.1.2" #Atribuir ip virtual
+  config.vm.synced_folder ".", "/vagrant", type: "nfs" #diretorio para sync compartilhado sera dos playbooks
+  config.vm.provision "shell", path: "provision.sh"
+end

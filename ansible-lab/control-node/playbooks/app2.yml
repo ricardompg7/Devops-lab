@@ -1,0 +1,81 @@
+---
+- name: Configurar servidor de aplicacao Java
+  hosts: app01
+
+  user: vagrant
+  become: yes #Aqui é para o usuario vagrant virar root
+               #Abaixo sao as variaveis de conexao com o DB
+  vars:
+   - dbname: "db01"
+   - dbname: "notes"
+   - dbusername: "notesapps"
+   - dbpassword: "devopsmaonamassa"
+  tasks:
+   - name: Configurar hosts lab ansible
+     lineinfile:
+       dest: /etc/hosts
+       state: present
+       line: "{{item}}"
+     with_items:
+      - 192.168.1.2 control-node
+      - 192.168.1.3 app01
+      - 192.168.1.4 db01
+   - name: Adicionar usuario de app
+     user: 
+       name: app
+       comment: Usuario de aplicacao
+       uid: 500
+   - name: Instalacao do Maven (o Maven é um empacotador do Java e gerencia depencias de pacotes e tambem roda rotina de teste)
+     yum:
+       name: maven
+       state: latest
+   - name: Instalacao do Java 1.8
+     yum:
+       name: java-1.8.0-openjdk
+       state: latest
+   - name: Criacao do diretorio de app
+     file:
+       path: /opt/notes
+       state: directory
+       owner: app
+       group: app
+   - name: Clone do repositorio Notes - app
+     git:
+      repo: 'https://github.com/callicoder/spring-boot-mysql-rest-api-tutorial.git'
+      dest: /opt/notes
+      clone: yes
+      force: yes #aqui esta forçando sobrescrever as alterações locais, o que vai valer é o que esta no repo da Git
+   - name: Configurar arquivo de propriedades para camada de banco de dados (Templates do Ansible)
+     templates:     #Este arquivo abaixo criamos ele dentro do diretorio templates e o conteudo peguei da Github
+      src: application.properties #Quando so coloca o nome do diretorio o Ansible ja entende que esta no caminho padão(playboos/templates)
+      dest: /opt/notes/src/main/resources/application.properties
+   - name: Gerar pacote da aplicação
+     command: mvn -f /opt/notes/pom.xml package #Esta é a forma de rodar uma linha de comando no Ansible
+     become_user: app                           #Desta forma que voce informa um usuario especifico para rodar uma APP
+   - name: Registrar versao atual do pacote
+     shell:                                 #Aqui poderia ser command tambem para vamos usar shell
+       cmd: mvm -o -q -Dexec.executable=echo -Dexec.args='$(project.version)'
+       chdir: /opt/notes/
+     register: app_version #register armazena conteudo de variaveis este caso da app_version
+   - name: Configurar serviço do Systemd 
+     template:   #Aqui voce esta informando que vai carregar um template do Ansible 
+       src: etc/systemd/system/notes.service #nao preciso colocar a / porque o Ansible entende que esta no diretorio /templates/
+       src: /etc/systemd/system/notes.service
+       notify: reload daemon #um trigger para enviar esta mensagem
+   - name: Iniciar serviço notes
+     service:
+       name: notes  #esta pegando do arquivo "notes.service" onde criamos os serviços
+       state: restarted
+   - roles:
+       - configuração-default-so  #esta role executa o update dos pacotes, esta criada no dir roles
+   - handlers:             #faz com que uma task seja dependente da outra
+      - name: reload app  #ESta é somente para exemplo a que ffunciona é da linha 78
+        systemd:
+          state: restarted
+          daemon_reload: yes
+          name: 'notes'
+      - name: reload daemon # Para funcionar ele precisar ter o mesmo nome da linha 65
+        systemd:
+          daemon_reexec: yes
+
+   

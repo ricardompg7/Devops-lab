@@ -1,0 +1,74 @@
+---
+- name: Configurar servidor de aplicacao Java
+  hosts: app01
+
+  user: vagrant
+  become: yes
+
+  vars:
+   - dbhost: "db01"
+   - dbname: "notes"
+   - dbusername: "notesapp"
+   - dbpassword: "devopsmaonamassa"
+  tasks:
+   - name: Adicionar usuario de app
+     user: 
+       name: app
+       comment: Usuario de aplicacao
+       uid: 500
+   - name: Instalacao do Maven (o Maven é um empacotador do Java e gerencia depencias de pacotes e tambem roda rotina de teste)
+     yum:
+       name: maven
+       state: latest
+   - name: Instalacao do Java 1.8
+     yum:
+       name: java-1.8.0-openjdk
+       state: latest
+   - name: Criacao do diretorio de app
+     file:
+       path: /opt/notes
+       state: directory
+       owner: app
+       group: app
+   - name: Instalacao do git client 
+     yum:            
+       name: git          
+       state: latest 
+   - name: Clone do repositorio Notes - app
+     git:
+      repo: 'https://github.com/callicoder/spring-boot-mysql-rest-api-tutorial.git'
+      dest: /opt/notes
+      clone: yes
+      force: yes
+   - name: Configurar arquivo de propriedades para camada de banco de dados
+     template:
+      src: application.properties
+      dest: /opt/notes/src/main/resources/application.properties
+   - name: Gerar pacote da aplicação
+     command: mvn -f /opt/notes/pom.xml package
+     become_user: app
+   - name: Registrar versao atual do pacote
+     shell:
+       cmd: mvn -o -q -Dexec.executable=echo -Dexec.args='${project.version}' exec:exec
+       chdir: /opt/notes/
+     register: app_version
+   - name: Configurar serviço do Systemd 
+     template:
+       src: etc/systemd/system/notes.service
+       src: /etc/systemd/system/notes.service
+     notify: reload daemon
+   - name: Iniciar serviço notes
+     service:
+       name: notes
+       state: restarted
+  roles:
+      - configuracao-default-so
+  handlers:
+    - name: reload app
+      systemd:
+        state: restarted
+        daemon_reload: yes
+        name: 'notes'
+    - name: reload daemon
+      systemd:
+        daemon_reexec: yes
