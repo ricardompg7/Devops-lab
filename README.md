@@ -2,7 +2,7 @@
 
 ## Synopsis
 
-_This role execute the upgrade of "GOA Tiberia Network/Omnix Web GUI" component on the remote servers (M&E DevOps team Lab) from one version to another. This role must be run through the Ansible Tower._
+_This role execute the upgrade of "GOA Tiberia Network/Omnix LUAGO" component on the remote servers (M&E DevOps team Lab) from one version to another. This role must be run through the Ansible Tower._
 
 ## Variables
 
