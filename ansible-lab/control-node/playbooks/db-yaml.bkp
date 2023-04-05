@@ -9,7 +9,7 @@
   vars:
    - dbname: "db01"
    - dbusername: "root"
-   - dbpassword: "devopsmaonamassa"
+   - dbpassword: "test"
   tasks:
    - name: Configurar hosts lab ansible
      lineinfile: line"{{item}}" path=/etc/hosts
