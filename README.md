@@ -111,7 +111,7 @@ OmnixWebGUI_FP28test_update_response.xml
 
 ### When the above parameters have been applied to in the ansible Tower, here the scenario what will be happened:
 
-It means, that the path "/temporary/WebGUI" will be created on the remote server if it does not exist AND directory "FP28test" will be created for the upgrade. 
+It means, that the path "/Temp/WebGUI" will be created on the remote server if it does not exist AND directory "FP28test" will be created for the upgrade. 
 
 Finally, "/temporary/WebGUI/FP28test" this directory on the remote server will store all the files for the upgrade.
 
