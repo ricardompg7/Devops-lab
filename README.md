@@ -109,7 +109,7 @@ OmnixWebGUI_FP28test_update_response.xml
 
 *Sub Package Name*: Omnix-v8.1.0-WebGUI-FP27-IM-Extensions-linux64-UpdatePack.zip
 
-### When the above parameters have been applied to in the ansible Tower, here the scenario what will be happened:
+## When the above parameters have been applied to in the ansible Tower, here the scenario what will be happened:
 
 It means, that the path "/Temp/WebGUI" will be created on the remote server if it does not exist AND directory "FP28test" will be created for the upgrade. 
 
